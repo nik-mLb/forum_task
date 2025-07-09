@@ -5,7 +5,7 @@ import (
 	"nik-mLb/forum_task.com/internal/models"
 	"nik-mLb/forum_task.com/internal/usecase"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type ServiceHandlers struct {

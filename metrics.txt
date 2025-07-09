@@ -1,0 +1,133 @@
+{
+    "endpoints": {
+        "": {
+            "avg_time": "94.257µs",
+            "avg_time_ns": 94257,
+            "count": 3,
+            "max_time": 115947,
+            "min_time": 74882,
+            "total_time": "282.772µs"
+        },
+        "/api/forum/:slug/create": {
+            "avg_time": "5.155734ms",
+            "avg_time_ns": 5155734,
+            "count": 10254,
+            "max_time": 32502334,
+            "min_time": 571355,
+            "total_time": "52.86689875s"
+        },
+        "/api/forum/:slug/details": {
+            "avg_time": "1.217235ms",
+            "avg_time_ns": 1217235,
+            "count": 1044,
+            "max_time": 11805495,
+            "min_time": 234846,
+            "total_time": "1.270794315s"
+        },
+        "/api/forum/:slug/threads": {
+            "avg_time": "3.732145ms",
+            "avg_time_ns": 3732145,
+            "count": 1053,
+            "max_time": 25535354,
+            "min_time": 160224,
+            "total_time": "3.929949057s"
+        },
+        "/api/forum/:slug/users": {
+            "avg_time": "659.697252ms",
+            "avg_time_ns": 659697252,
+            "count": 1001,
+            "max_time": 1665335378,
+            "min_time": 218284,
+            "total_time": "11m0.356949983s"
+        },
+        "/api/forum/create": {
+            "avg_time": "2.647747ms",
+            "avg_time_ns": 2647747,
+            "count": 215,
+            "max_time": 29632554,
+            "min_time": 378919,
+            "total_time": "569.265654ms"
+        },
+        "/api/post/:id/details": {
+            "avg_time": "1.843034ms",
+            "avg_time_ns": 1843034,
+            "count": 989,
+            "max_time": 14300213,
+            "min_time": 153057,
+            "total_time": "1.82276105s"
+        },
+        "/api/service/clear": {
+            "avg_time": "181.933886ms",
+            "avg_time_ns": 181933886,
+            "count": 2,
+            "max_time": 195304663,
+            "min_time": 168563110,
+            "total_time": "363.867773ms"
+        },
+        "/api/service/status": {
+            "avg_time": "1.591979ms",
+            "avg_time_ns": 1591979,
+            "count": 6,
+            "max_time": 2352567,
+            "min_time": 507503,
+            "total_time": "9.551876ms"
+        },
+        "/api/thread/:slug_or_id/create": {
+            "avg_time": "104.255623ms",
+            "avg_time_ns": 104255623,
+            "count": 15520,
+            "max_time": 602546329,
+            "min_time": 451427,
+            "total_time": "26m58.047270575s"
+        },
+        "/api/thread/:slug_or_id/details": {
+            "avg_time": "2.602878ms",
+            "avg_time_ns": 2602878,
+            "count": 970,
+            "max_time": 17124105,
+            "min_time": 138020,
+            "total_time": "2.524792257s"
+        },
+        "/api/thread/:slug_or_id/posts": {
+            "avg_time": "149.963797ms",
+            "avg_time_ns": 149963797,
+            "count": 1314,
+            "max_time": 1207585843,
+            "min_time": 341522,
+            "total_time": "3m17.0524296s"
+        },
+        "/api/thread/:slug_or_id/vote": {
+            "avg_time": "4.027475ms",
+            "avg_time_ns": 4027475,
+            "count": 100011,
+            "max_time": 54788909,
+            "min_time": 964020,
+            "total_time": "6m42.791871227s"
+        },
+        "/api/user/:nickname/create": {
+            "avg_time": "3.097574ms",
+            "avg_time_ns": 3097574,
+            "count": 1573,
+            "max_time": 16621049,
+            "min_time": 288879,
+            "total_time": "4.87248534s"
+        },
+        "/api/user/:nickname/profile": {
+            "avg_time": "1.60278ms",
+            "avg_time_ns": 1602780,
+            "count": 1046,
+            "max_time": 9068759,
+            "min_time": 220018,
+            "total_time": "1.67650788s"
+        },
+        "/metrics": {
+            "avg_time": "283.999µs",
+            "avg_time_ns": 283999,
+            "count": 1,
+            "max_time": 283999,
+            "min_time": 283999,
+            "total_time": "283.999µs"
+        }
+    },
+    "total_requests": 135002
+}

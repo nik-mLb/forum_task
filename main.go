@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"net/http"
+	mw "nik-mLb/forum_task.com/internal/middleware"
 	"nik-mLb/forum_task.com/internal/repository"
 	"nik-mLb/forum_task.com/internal/transport"
 	"nik-mLb/forum_task.com/internal/usecase"
@@ -11,8 +13,8 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 const (
@@ -22,6 +24,9 @@ const (
 
 func main() {
 	e := echo.New()
+
+	e.Use(mw.MetricsMiddleware)
+
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Format: LoggerFormat}))
 
 	numCPU := runtime.NumCPU()
@@ -76,6 +81,10 @@ func main() {
 	postUC := usecase.NewPostUseCase(postRepo, userRepo, forumRepo, threadRepo)
 	postHandler := transport.NewPostHandlers(postUC)
 	postHandler.NewPostHandlers(e)
+
+	e.GET("/metrics", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, mw.GetMetrics())
+	})
 
 	// Запуск сервера
 	e.Logger.Fatal(e.Start(":5000"))

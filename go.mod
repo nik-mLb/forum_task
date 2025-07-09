@@ -21,10 +21,12 @@ require (
 	github.com/jackc/pgtype v1.14.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
+	golang.org/x/time v0.11.0 // indirect
 )
 
 require (
 	github.com/jackc/pgx/v4 v4.18.3
+	github.com/labstack/echo/v4 v4.13.4
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-colorable v0.1.14 // indirect
