@@ -51,25 +51,14 @@ const (
         FROM forum.thread 
         WHERE LOWER(forum) = LOWER($1)`
 
-    getForumUsersQuery = `
-        SELECT u.nickname, u.fullname, u.about, u.email 
-        FROM forum."user" u
-        WHERE u.nickname IN (
-            SELECT author FROM forum.post WHERE forum = $1
-            UNION
-            SELECT author FROM forum.thread WHERE forum = $1
-        )`
-    
-    getForumUsersWithSinceQuery = `
-        SELECT u.nickname, u.fullname, u.about, u.email 
-        FROM forum."user" u
-        WHERE u.nickname IN (
-            SELECT author FROM forum.post WHERE forum = $1
-            UNION
-            SELECT author FROM forum.thread WHERE forum = $1
-        ) AND LOWER(u.nickname) %s LOWER($2)`
-    
-    getForumUsersOrderQuery = ` ORDER BY LOWER(u.nickname) %s LIMIT $%d`
+    getForumUsersBaseQuery = `
+		SELECT u.nickname, u.fullname, u.about, u.email 
+		FROM forum."user" u
+		JOIN forum.forum_user fu ON u.nickname = fu.nickname
+		WHERE LOWER(fu.forum) = $1`
+
+	forumUsersSinceCondition = ` AND LOWER(u.nickname) %s LOWER($%d)`
+	forumUsersOrderLimit     = ` ORDER BY LOWER(u.nickname) %s LIMIT $%d`
 )
 
 func (r *ForumRepository) CreateForum(forum models.Forum) error {
@@ -217,58 +206,46 @@ func (r *ForumRepository) GetForumThreads(slug string, limit int, since string, 
 
 func (r *ForumRepository) GetForumUsers(slug string, limit int, since string, desc bool) ([]models.User, error) {
     params := []interface{}{strings.ToLower(slug)}
+	query := getForumUsersBaseQuery
 
-    baseQuery := `
-        SELECT u.nickname, u.fullname, u.about, u.email 
-        FROM forum."user" u
-        WHERE u.nickname IN (
-            SELECT author FROM forum.post WHERE LOWER(forum) = $1
-            UNION
-            SELECT author FROM forum.thread WHERE LOWER(forum) = $1
-        )`
-
-    // Добавляем условие для since
-    if since != "" {
-        comparison := ">"
-        if desc {
-            comparison = "<"
-        }
-        baseQuery += fmt.Sprintf(" AND LOWER(u.nickname) %s LOWER($2)", comparison)
-        params = append(params, since)
-    }
+	// Добавляем условие для since
+	if since != "" {
+		comparison := ">"
+		if desc {
+			comparison = "<"
+		}
+		query += fmt.Sprintf(forumUsersSinceCondition, comparison, len(params)+1)
+		params = append(params, since)
+	}
 
     order := "ASC"
-    if desc {
-        order = "DESC"
-    }
-    baseQuery += fmt.Sprintf(" ORDER BY LOWER(u.nickname) %s", order)
+	if desc {
+		order = "DESC"
+	}
+	query += fmt.Sprintf(forumUsersOrderLimit, order, len(params)+1)
+	params = append(params, limit)
 
-    // Добавляем лимит
-    paramIndex := len(params) + 1
-    baseQuery += fmt.Sprintf(" LIMIT $%d", paramIndex)
-    params = append(params, limit)
+	rows, err := r.db.Query(query, params...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-    rows, err := r.db.Query(baseQuery, params...)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+	users := make([]models.User, 0)
+	for rows.Next() {
+		var user models.User
+		if err := rows.Scan(
+			&user.Nickname,
+			&user.Fullname,
+			&user.About,
+			&user.Email,
+		); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
 
-    users := make([]models.User, 0)
-    for rows.Next() {
-        var user models.User
-        if err := rows.Scan(
-            &user.Nickname,
-            &user.Fullname,
-            &user.About,
-            &user.Email,
-        ); err != nil {
-            return nil, err
-        }
-        users = append(users, user)
-    }
-
-    return users, rows.Err()
+	return users, rows.Err()
 }
 
 // Вспомогательная функция для порядка сортировки
