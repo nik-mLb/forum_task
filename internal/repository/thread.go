@@ -3,8 +3,10 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"nik-mLb/forum_task.com/internal/models"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -149,10 +151,21 @@ func (r *ThreadRepository) CreatePosts(newPosts models.NewPosts, thread *models.
     }
     defer tx.Rollback()
 
+    // Блокируем форум для предотвращения deadlock
+    _, err = tx.Exec(`SELECT 1 FROM forum.forum WHERE slug = $1 FOR UPDATE`, thread.Forum)
+    if err != nil {
+        return nil, err
+    }
+
+    // Вставка постов
     stmt, err := tx.Prepare(`
-        INSERT INTO forum.post 
-        (parent, author, message, isEdited, forum, thread, created) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO forum.post (parent, author, message, isEdited, forum, thread, created, path) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 
+            (SELECT CASE WHEN $1 = 0 
+                THEN ARRAY[currval(pg_get_serial_sequence('forum.post','id'))] 
+                ELSE (SELECT path || currval(pg_get_serial_sequence('forum.post','id')) FROM forum.post WHERE id = $1) 
+            END)
+        )
         RETURNING id, parent, author, message, isEdited, forum, thread, created, path`)
     if err != nil {
         return nil, err
@@ -160,6 +173,7 @@ func (r *ThreadRepository) CreatePosts(newPosts models.NewPosts, thread *models.
     defer stmt.Close()
 
     createdPosts := make(models.Posts, 0, len(newPosts))
+    authorsSet := make(map[string]struct{})
     createdAt := time.Now()
 
     for _, newPost := range newPosts {
@@ -187,12 +201,40 @@ func (r *ThreadRepository) CreatePosts(newPosts models.NewPosts, thread *models.
             return nil, err
         }
         createdPosts = append(createdPosts, &post)
+        authorsSet[newPost.Author] = struct{}{}
+    }
+
+    // Пакетное обновление счетчика постов
+    _, err = tx.Exec(`
+        UPDATE forum.forum 
+        SET posts = posts + $1 
+        WHERE slug = $2`, len(newPosts), thread.Forum)
+    if err != nil {
+        return nil, err
+    }
+
+    // Групповая вставка пользователей
+    if len(authorsSet) > 0 {
+        placeholders := make([]string, 0, len(authorsSet))
+        args := make([]interface{}, 0, len(authorsSet)*2)
+        idx := 1
+        for author := range authorsSet {
+            placeholders = append(placeholders, fmt.Sprintf("($%d, $%d)", idx, idx+1))
+            args = append(args, thread.Forum, author)
+            idx += 2
+        }
+        _, err = tx.Exec(`
+            INSERT INTO forum.forum_user (forum, nickname) 
+            VALUES `+ strings.Join(placeholders, ",")+`
+            ON CONFLICT DO NOTHING`, args...)
+        if err != nil {
+            return nil, err
+        }
     }
 
     if err := tx.Commit(); err != nil {
         return nil, err
     }
-
     return createdPosts, nil
 }
 
